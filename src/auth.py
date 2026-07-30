@@ -20,11 +20,13 @@ app = msal.ConfidentialClientApplication(
 
 SCOPE = [f"{D365_RESOURCE_URL}/.default"]
 
-result = app.acquire_token_for_client(scopes=SCOPE)
-assert result is not None
+def get_access_token():
+    result = app.acquire_token_for_client(scopes=SCOPE)
+    
+    assert result is not None
 
-if "access_token" in result:
-    token = result["access_token"]
-else:
-    print(result.get("error"))
-    print(result.get("error_description"))
+    if "access_token" in result:
+        return result["access_token"]
+    else:
+        print(result.get("error"))
+        print(result.get("error_description"))
