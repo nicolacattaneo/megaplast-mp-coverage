@@ -9,6 +9,7 @@ CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 TENANT_ID = os.getenv("TENANT_ID")
 D365_RESOURCE_URL = os.getenv("D365_RESOURCE_URL")
 D365_DATA_URL = os.getenv("D365_DATA_URL")
+D365_CONSUMPTION_URL = os.getenv("D365_CONSUMPTION_URL")
 
 AUTHORITY = f"https://login.microsoftonline.com/{TENANT_ID}"
 

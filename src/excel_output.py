@@ -37,5 +37,15 @@ def write_data_row(ws, row_number, material_data):
         if isinstance(value, (int, float)):
             cell.number_format = '#,##0.00'
 
-def write_totals_row():
-    return None
+SUM_FIELDS = ["stock", "avg_daily"]
+
+def write_totals_row(ws, row_number, all_materials_data):
+    for col_num, key in enumerate(FIELD_ORDER):
+        cell = ws.cell(row=row_number, column=col_num + 1)
+        if key in SUM_FIELDS:
+            values = [row[key] for row in all_materials_data]
+            total = sum(values)
+            cell.value = total
+            cell.number_format = '#,##0.00'
+        elif key == "config":
+            cell.value = "Total: "
