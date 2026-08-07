@@ -1,5 +1,6 @@
 import requests
 from auth import get_access_token, D365_DATA_URL
+import pandas as pd
 
 
 def _get_json_or_exit(response):
@@ -35,3 +36,8 @@ def get_inventory():
             break
 
     return data
+
+def aggregate_inventory(data):
+    df = pd.DataFrame(data)
+    grouped = df.groupby(['ItemNumber', 'ProductConfigurationId', 'InventoryWarehouseId'])['AvailableOnHandQuantity'].sum().reset_index()
+    return grouped
