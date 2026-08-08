@@ -39,5 +39,5 @@ def get_inventory():
 
 def aggregate_inventory(data):
     df = pd.DataFrame(data)
-    grouped = df.groupby(['ItemNumber', 'ProductConfigurationId', 'InventoryWarehouseId'])['AvailableOnHandQuantity'].sum().reset_index()
+    grouped = df.groupby(['ItemNumber', 'ProductConfigurationId'])['AvailableOnHandQuantity'].sum().reset_index()
     return grouped
