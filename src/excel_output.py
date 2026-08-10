@@ -3,6 +3,8 @@ from openpyxl.styles import Font, PatternFill
 from openpyxl.worksheet.worksheet import Worksheet
 from datetime import date
 from typing import cast
+import math
+import os
 
 
 
@@ -26,18 +28,28 @@ def setup_sheet(headers: list):
 
     return wb, ws
 
-FIELD_ORDER = ["item", "config", "stock", "avg_daily", "days_remaining"]
+FIELD_ORDER = ["ItemNumber", "ProductConfigurationId", "AvailableOnHandQuantity", "avg_daily_consumption", "days_remaining"]
 
-# material_data = {"item": "AD_FLUIDEZ", "config": "Virgen", "stock": 509.04, ...}
 def write_data_row(ws, row_number, material_data):
+    NO_CONSUMPTION_FILL = PatternFill(start_color="FFF3CD", end_color="FFF3CD", fill_type="solid")
+    NO_INVENTORY_FILL = PatternFill(start_color="F8D7DA", end_color="F8D7DA", fill_type="solid")
+    
     for col_num, key in enumerate(FIELD_ORDER):
         value = material_data[key]
         cell = ws.cell(row=row_number, column=col_num + 1)
-        cell.value = value
-        if isinstance(value, (int, float)):
-            cell.number_format = '#,##0.00'
+        if value is None or (isinstance(value, float) and math.isnan(value)):
+            cell.value = "N/A"
+        else:
+            cell.value = value
+            if isinstance(value, (int, float)):
+                cell.number_format = '#,##0.00'
 
-SUM_FIELDS = ["stock", "avg_daily"]
+        if material_data.get('no_inventory_record'):
+            cell.fill = NO_INVENTORY_FILL
+        elif material_data.get('no_consumption_data (last 7 days)'):
+            cell.fill = NO_CONSUMPTION_FILL
+
+SUM_FIELDS = ["AvailableOnHandQuantity", "avg_daily_consumption"]
 
 def write_totals_row(ws, row_number, all_materials_data):
     for col_num, key in enumerate(FIELD_ORDER):
@@ -49,3 +61,23 @@ def write_totals_row(ws, row_number, all_materials_data):
             cell.number_format = '#,##0.00'
         elif key == "config":
             cell.value = "Total: "
+
+
+def generate_report(report_data):
+    filename = f"cobertura_mp_{date.today().isoformat()}.xlsx"
+    filepath = os.path.join(os.getcwd(), filename)
+
+    headers = FIELD_ORDER
+    wb, ws = setup_sheet(headers)
+
+    records = report_data.to_dict('records')
+
+    row_num = 4
+    for record in records:
+        write_data_row(ws, row_num, record)
+        row_num += 1
+
+    write_totals_row(ws, row_num, records)
+
+    wb.save(filepath)
+    return filepath

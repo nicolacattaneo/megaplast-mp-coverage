@@ -29,14 +29,3 @@ def merge():
     merged['avg_daily_consumption'] = merged['avg_daily_consumption'].fillna(0)
 
     return merged
-
-
-if __name__ == "__main__":
-    from calculate import add_days_remaining
-
-    merged = merge()
-    result = add_days_remaining(merged)
-
-    print(result.to_string())
-    result.to_excel("test_output.xlsx", index=False)
-
