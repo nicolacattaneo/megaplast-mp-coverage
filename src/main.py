@@ -8,6 +8,3 @@ def main():
     filepath = generate_report(report_data)
     print(f"Report saved to {filepath}")
     return filepath
-
-if __name__ == "__main__":
-    main()

@@ -19,10 +19,11 @@ app = msal.ConfidentialClientApplication(
     authority=AUTHORITY,
 )
 
-SCOPE = [f"{D365_RESOURCE_URL}/.default"]
+D365_SCOPE = [f"{D365_RESOURCE_URL}/.default"]
+GRAPH_SCOPE = ["https://graph.microsoft.com/.default"]
 
-def get_access_token():
-    result = app.acquire_token_for_client(scopes=SCOPE)
+def get_access_token(scope=D365_SCOPE):
+    result = app.acquire_token_for_client(scopes=scope)
     
     assert result is not None
 
