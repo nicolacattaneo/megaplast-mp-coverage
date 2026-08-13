@@ -2,7 +2,7 @@
 def calculate_days_remaining(stock,  avg_daily_consumption):
     if avg_daily_consumption == 0:
         return None
-    return stock / avg_daily_consumption
+    return round(stock / avg_daily_consumption)
 
 def add_days_remaining(merged_df):
     results = []

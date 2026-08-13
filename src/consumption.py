@@ -2,6 +2,7 @@ import requests
 from auth import get_access_token, D365_CONSUMPTION_URL
 from datetime import date, timedelta
 import pandas as pd
+from classification import normalize_configuration
 
 def _get_json_or_exit(response):
     if response.status_code != 200:
@@ -41,6 +42,7 @@ def get_consumption():
 
 def aggregate_consumption(data):
     df = pd.DataFrame(data)
+    df['configId'] = df['configId'].apply(normalize_configuration)
     consumption_only = df[df['Qty'] < 0]
     grouped = consumption_only.groupby(['ItemId', 'configId'])['Qty'].sum().reset_index()
     grouped['avg_daily_consumption'] = grouped['Qty'].abs() / 7

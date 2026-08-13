@@ -1,10 +1,21 @@
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill
 from openpyxl.worksheet.worksheet import Worksheet
+from openpyxl.utils import get_column_letter
 from datetime import date
 from typing import cast
 import math
 import os
+
+COLUMN_WIDTH_PADDING = 2
+
+HEADER_LABELS = {
+    "ItemNumber": "ItemNumber",
+    "ProductConfigurationId": "ProductConfigurationId",
+    "AvailableOnHandQuantity": "AvailableOnHandQuantity (kg)",
+    "avg_daily_consumption": "avg_daily_consumption (kg/day)",
+    "days_remaining": "days_remaining (days)",
+}
 
 
 
@@ -25,6 +36,7 @@ def setup_sheet(headers: list):
         cell.value = headers[col]
         cell.font = header_font
         cell.fill = header_fill
+        ws.column_dimensions[get_column_letter(col + 1)].width = len(str(headers[col])) + COLUMN_WIDTH_PADDING
 
     return wb, ws
 
@@ -42,7 +54,7 @@ def write_data_row(ws, row_number, material_data):
         else:
             cell.value = value
             if isinstance(value, (int, float)):
-                cell.number_format = '#,##0.00'
+                cell.number_format = '#,##0' if key == "days_remaining" else '#,##0.00'
 
         if material_data.get('no_inventory_record'):
             cell.fill = NO_INVENTORY_FILL
@@ -59,6 +71,7 @@ def write_totals_row(ws, row_number, all_materials_data):
             total = sum(values)
             cell.value = total
             cell.number_format = '#,##0.00'
+            cell.font = Font(bold=True)
         elif key == "config":
             cell.value = "Total: "
 
@@ -67,7 +80,7 @@ def generate_report(report_data):
     filename = f"cobertura_mp_{date.today().isoformat()}.xlsx"
     filepath = os.path.join(os.getcwd(), filename)
 
-    headers = FIELD_ORDER
+    headers = [HEADER_LABELS[field] for field in FIELD_ORDER]
     wb, ws = setup_sheet(headers)
 
     records = report_data.to_dict('records')
