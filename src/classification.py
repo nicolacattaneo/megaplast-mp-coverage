@@ -1,7 +1,5 @@
 
 EQUIVALENT_CODES = {"V": "VIRGEN", "P": "PELLET"}
-# missing codes??
-
 
 def normalize_configuration(raw_value):
     if raw_value is None:
@@ -20,12 +18,10 @@ def build_classification_key(item_number, configuration_id, size_id=None, color_
     return key
 
 def add_keys_to_data(data, item_field, config_field, size_field=None, color_field=None):
-    faulty_rows = 0 # remove later on
     for row in data:
         try:
             key = build_classification_key(row.get(item_field), row.get(config_field), row.get(size_field), row.get(color_field))
             row['classification_key'] = key
         except ValueError:
-            faulty_rows += 1 # type: ignore | remove later on
             continue
-    return data, faulty_rows ## remove faulty_rows later on
+    return data

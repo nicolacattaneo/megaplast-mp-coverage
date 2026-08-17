@@ -11,18 +11,20 @@ def _get_json_or_exit(response):
         exit()
     return response.json()
 
+MAX_CONSUMPTION_WINDOW_DAYS = 30
+
 def get_consumption():
     token = get_access_token()
 
     today = date.today()
-    week_ago = today - timedelta(days=7)
+    window_start = today - timedelta(days=MAX_CONSUMPTION_WINDOW_DAYS)
 
     headers = {
         "Authorization": f"Bearer {token}"
     }
 
     params = {
-    "$filter": f"(ReferenceCategory eq Microsoft.Dynamics.DataEntities.InventTransType'ProdLine' or ReferenceCategory eq Microsoft.Dynamics.DataEntities.InventTransType'BomLine') and (InventLocationId eq 'MAP01' or InventLocationId eq 'MEZ01' or InventLocationId eq 'Compuestos' or InventLocationId eq 'P2Mezclas') and DatePhysical ge {week_ago.isoformat()} and DatePhysical le {today.isoformat()}"
+    "$filter": f"(ReferenceCategory eq Microsoft.Dynamics.DataEntities.InventTransType'ProdLine' or ReferenceCategory eq Microsoft.Dynamics.DataEntities.InventTransType'BomLine') and (InventLocationId eq 'MAP01' or InventLocationId eq 'MEZ01' or InventLocationId eq 'Compuestos' or InventLocationId eq 'P2Mezclas') and DatePhysical ge {window_start.isoformat()} and DatePhysical le {today.isoformat()}"
     }
 
     response = requests.get(D365_CONSUMPTION_URL, headers=headers, params=params)  # type: ignore
@@ -40,11 +42,18 @@ def get_consumption():
 
     return data
 
-def aggregate_consumption(data):
+def aggregate_consumption(data, days):
     df = pd.DataFrame(data)
     df['configId'] = df['configId'].apply(normalize_configuration)
-    consumption_only = df[df['Qty'] < 0]
-    grouped = consumption_only.groupby(['ItemId', 'configId'])['Qty'].sum().reset_index()
-    grouped['avg_daily_consumption'] = grouped['Qty'].abs() / 7
+    df['DatePhysical'] = pd.to_datetime(df['DatePhysical'])
+
+    window_start = pd.Timestamp(date.today() - timedelta(days=days))
+    if df['DatePhysical'].dt.tz is not None:
+        window_start = window_start.tz_localize(df['DatePhysical'].dt.tz)
+    windowed = df[(df['Qty'] < 0) & (df['DatePhysical'] >= window_start)]
+
+    grouped = windowed.groupby(['ItemId', 'configId'])['Qty'].sum().reset_index()
+    grouped[f'avg_daily_consumption_{days}d'] = grouped['Qty'].abs() / days
+    grouped = grouped.drop(columns=['Qty'])
 
     return grouped

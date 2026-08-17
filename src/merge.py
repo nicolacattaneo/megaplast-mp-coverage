@@ -14,18 +14,23 @@ def get_raw_material_inventory():
     return [row for row in data if is_raw_material(row['ItemNumber'])]
 
 def merge():
-    consumption_df = aggregate_consumption(get_consumption())
+    consumption_data = get_consumption()
+    consumption_7d = aggregate_consumption(consumption_data, 7)
+    consumption_30d = aggregate_consumption(consumption_data, 30)
     inventory_df = aggregate_inventory(get_raw_material_inventory())
 
-    consumption_df = consumption_df[consumption_df['ItemId'].apply(is_raw_material)]
+    consumption_7d = consumption_7d[consumption_7d['ItemId'].apply(is_raw_material)]
+    consumption_30d = consumption_30d[consumption_30d['ItemId'].apply(is_raw_material)]
 
-    consumption_df = consumption_df.rename(columns={'ItemId': 'ItemNumber', 'configId': 'ProductConfigurationId'})
+    consumption_7d = consumption_7d.rename(columns={'ItemId': 'ItemNumber', 'configId': 'ProductConfigurationId'})
+    consumption_30d = consumption_30d.rename(columns={'ItemId': 'ItemNumber', 'configId': 'ProductConfigurationId'})
 
     # Does warehouse matter?
-    merged = pd.merge(inventory_df, consumption_df, on=['ItemNumber', 'ProductConfigurationId'], how="outer")
+    merged = pd.merge(inventory_df, consumption_7d, on=['ItemNumber', 'ProductConfigurationId'], how="outer")
+    merged = pd.merge(merged, consumption_30d, on=['ItemNumber', 'ProductConfigurationId'], how="outer")
 
-    merged['no_inventory_record'] = merged['AvailableOnHandQuantity'].isna()
     merged['AvailableOnHandQuantity'] = merged['AvailableOnHandQuantity'].fillna(0)
-    merged['avg_daily_consumption'] = merged['avg_daily_consumption'].fillna(0)
+    merged['avg_daily_consumption_7d'] = merged['avg_daily_consumption_7d'].fillna(0)
+    merged['avg_daily_consumption_30d'] = merged['avg_daily_consumption_30d'].fillna(0)
 
     return merged

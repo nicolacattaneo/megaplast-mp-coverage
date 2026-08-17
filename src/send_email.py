@@ -30,7 +30,10 @@ def send_report_email(recipient_email, filepath):
             "subject": f'Reporte de Cobertura de Materia Prima - {today.strftime("%d/%m/%Y")}',
             "body": {
                 "contentType": "Text",
-                "content": "Esta es una prueba..."
+                "content": "Buenos días, \n \n"
+                            f"Adjunto el reporte de cobertura de materia prima correspondiente al {today.strftime("%d/%m/%Y")}.\n \n"
+                            "Saludos, \n"
+                            "Reporte automático — Megaplast"
             },
             "toRecipients": [
                 {"emailAddress": {"address": recipient_email}}
@@ -52,4 +55,5 @@ def send_report_email(recipient_email, filepath):
         print(response.text)
     else:
         print("Email sent successfully")
+        os.remove(filepath)
 

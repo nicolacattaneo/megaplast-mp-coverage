@@ -4,11 +4,11 @@ def calculate_days_remaining(stock,  avg_daily_consumption):
         return None
     return round(stock / avg_daily_consumption)
 
-def add_days_remaining(merged_df):
-    results = []
-    for _, row in merged_df.iterrows():
-        days = calculate_days_remaining(row['AvailableOnHandQuantity'], row['avg_daily_consumption'])
-        results.append(days)
-    merged_df['days_remaining'] = results
-    merged_df['no_consumption_data (last 7 days)'] = merged_df['avg_daily_consumption'] == 0
-    return merged_df
+def add_days_remaining(grouped_df):
+    grouped_df['days_remaining_7d'] = grouped_df.apply(
+        lambda row: calculate_days_remaining(row['AvailableOnHandQuantity'], row['avg_daily_consumption_7d']), axis=1
+    )
+    grouped_df['days_remaining_30d'] = grouped_df.apply(
+        lambda row: calculate_days_remaining(row['AvailableOnHandQuantity'], row['avg_daily_consumption_30d']), axis=1
+    )
+    return grouped_df
