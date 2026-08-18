@@ -1,0 +1,31 @@
+name: Daily coverage report
+
+on:
+  schedule:
+    - cron: "0 13 * * 1-5"
+  workflow_dispatch: {}
+
+jobs:
+  send-report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate and send report
+        env:
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+          TENANT_ID: ${{ secrets.TENANT_ID }}
+          D365_RESOURCE_URL: ${{ secrets.D365_RESOURCE_URL }}
+          D365_DATA_URL: ${{ secrets.D365_DATA_URL }}
+          D365_CONSUMPTION_URL: ${{ secrets.D365_CONSUMPTION_URL }}
+          SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+          RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
+        run: python src/send_email.py

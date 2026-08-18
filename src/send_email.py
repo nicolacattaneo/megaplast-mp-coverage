@@ -10,8 +10,13 @@ from main import main
 load_dotenv()
 SENDER_EMAIL = os.getenv("SENDER_EMAIL")
 
-def send_report_email(recipient_email, filepath):   
+def send_report_email(recipient_emails, filepath):
     token = get_access_token(GRAPH_SCOPE)
+    to_recipients = [
+        {"emailAddress": {"address": email.strip()}}
+        for email in recipient_emails.split(",")
+        if email.strip()
+    ]
 
     with open(filepath, 'rb') as f:
         file_bytes = f.read()
@@ -35,9 +40,7 @@ def send_report_email(recipient_email, filepath):
                             "Saludos, \n"
                             "Reporte automático — Megaplast"
             },
-            "toRecipients": [
-                {"emailAddress": {"address": recipient_email}}
-            ],
+            "toRecipients": to_recipients,
             "attachments": [
                 {
                     "@odata.type": "#microsoft.graph.fileAttachment",
@@ -56,4 +59,8 @@ def send_report_email(recipient_email, filepath):
     else:
         print("Email sent successfully")
         os.remove(filepath)
+
+if __name__ == "__main__":
+    recipient_email = os.getenv("RECIPIENT_EMAIL")
+    send_report_email(recipient_email, main())
 
