@@ -4,11 +4,9 @@ from datetime import date, timedelta
 import pandas as pd
 from classification import normalize_configuration
 
-def _get_json_or_exit(response):
+def _get_json_or_raise(response):
     if response.status_code != 200:
-        print(f"Request failed: {response.status_code}")
-        print(response.text)
-        exit()
+        raise RuntimeError(f"D365 consumption request failed: {response.status_code} - {response.text}")
     return response.json()
 
 MAX_CONSUMPTION_WINDOW_DAYS = 30
@@ -28,7 +26,7 @@ def get_consumption():
     }
 
     response = requests.get(D365_CONSUMPTION_URL, headers=headers, params=params)  # type: ignore
-    json_data = _get_json_or_exit(response)
+    json_data = _get_json_or_raise(response)
 
     data = []
 
@@ -36,7 +34,7 @@ def get_consumption():
         data.extend(json_data.get('value') or [])
         if '@odata.nextLink' in json_data:
             response = requests.get(json_data.get('@odata.nextLink'), headers=headers)  # type: ignore
-            json_data = _get_json_or_exit(response)
+            json_data = _get_json_or_raise(response)
         else:
             break
 

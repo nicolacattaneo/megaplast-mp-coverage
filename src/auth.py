@@ -30,5 +30,4 @@ def get_access_token(scope=D365_SCOPE):
     if "access_token" in result:
         return result["access_token"]
     else:
-        print(result.get("error"))
-        print(result.get("error_description"))
+        raise RuntimeError(f"Token acquisition failed: {result.get('error')} - {result.get('error_description')}")
